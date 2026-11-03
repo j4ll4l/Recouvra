@@ -1,0 +1,25 @@
+services:
+  php:
+    build: ./api
+    environment:
+      SERVER_NAME: ":80"
+    ports: ["8000:80"]
+    volumes: ["./api:/app"]
+    depends_on: [database, redis]
+  database:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: "!ChangeMe!"
+    ports: ["5432:5432"]
+    volumes: ["db_data:/var/lib/postgresql/data"]
+  redis:
+    image: redis:7-alpine
+  mailpit:
+    image: axllent/mailpit
+    ports: ["8025:8025"]
+volumes:
+  db_data:
+# TODO: config file
+# TODO: worker
