@@ -30,14 +30,17 @@
         "symfony/serializer": "7.4.*",
         "symfony/twig-bundle": "7.4.*",
         "symfony/validator": "7.4.*",
-        "symfony/yaml": "7.4.*"
+        "symfony/yaml": "7.4.*",
+        "symfonycasts/reset-password-bundle": "^1.26"
     },
     "require-dev": {
+        "doctrine/doctrine-fixtures-bundle": "^4.3",
         "friendsofphp/php-cs-fixer": "^3.95",
         "phpstan/phpstan": "^2.3",
         "symfony/maker-bundle": "^1.68",
         "symfony/stopwatch": "7.4.*",
-        "symfony/web-profiler-bundle": "7.4.*"
+        "symfony/web-profiler-bundle": "7.4.*",
+        "zenstruck/foundry": "^2.16"
     },
     "config": {
         "allow-plugins": {
