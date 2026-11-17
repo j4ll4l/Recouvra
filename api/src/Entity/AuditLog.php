@@ -30,6 +30,7 @@ class AuditLog
     #[ORM\Column]
     private ?int $entityId = null;
 
+    /** @var array<string, mixed>|null */
     #[ORM\Column(nullable: true)]
     private ?array $data = null;
 
@@ -106,11 +107,13 @@ class AuditLog
         return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getData(): ?array
     {
         return $this->data;
     }
 
+    /** @param array<string, mixed>|null $data */
     public function setData(?array $data): static
     {
         $this->data = $data;

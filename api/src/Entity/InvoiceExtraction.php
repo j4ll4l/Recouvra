@@ -26,6 +26,7 @@ class InvoiceExtraction
     #[ORM\JoinColumn(nullable: true)]
     private ?Invoice $invoice = null;
 
+    /** @var array<string, mixed>|null */
     #[ORM\Column(nullable: true)]
     private ?array $result = null;
 
@@ -67,11 +68,13 @@ class InvoiceExtraction
         return $this;
     }
 
+    /** @return array<string, mixed>|null */
     public function getResult(): ?array
     {
         return $this->result;
     }
 
+    /** @param array<string, mixed>|null $result */
     public function setResult(?array $result): static
     {
         $this->result = $result;
