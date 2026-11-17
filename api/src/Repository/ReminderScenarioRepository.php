@@ -16,28 +16,28 @@ class ReminderScenarioRepository extends ServiceEntityRepository
         parent::__construct($registry, ReminderScenario::class);
     }
 
-//    /**
-//     * @return ReminderScenario[] Returns an array of ReminderScenario objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    //    /**
+    //     * @return ReminderScenario[] Returns an array of ReminderScenario objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('r')
+    //            ->andWhere('r.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('r.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
 
-//    public function findOneBySomeField($value): ?ReminderScenario
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    //    public function findOneBySomeField($value): ?ReminderScenario
+    //    {
+    //        return $this->createQueryBuilder('r')
+    //            ->andWhere('r.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }

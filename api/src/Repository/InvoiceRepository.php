@@ -2,11 +2,11 @@
 
 namespace App\Repository;
 
-use App\Entity\Invoice;
 use App\Entity\Company;
+use App\Entity\Invoice;
 use App\Entity\Payment;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -18,7 +18,6 @@ class InvoiceRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Invoice::class);
     }
-
 
     /**
      * @return Invoice[] Returns an array of Invoices that are overdue and unpaid
@@ -39,7 +38,7 @@ class InvoiceRepository extends ServiceEntityRepository
 
     /**
      * Returns the remaining amount due on an invoice, in cents
-     * (TTC amount minus the sum of its payments). 
+     * (TTC amount minus the sum of its payments).
      */
     public function getRemainingDueCents(Invoice $invoice): int
     {

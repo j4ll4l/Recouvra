@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\TimestampableTrait;
 use App\Repository\InvoiceExtractionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Traits\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: InvoiceExtractionRepository::class)]
 #[ORM\HasLifecycleCallbacks]

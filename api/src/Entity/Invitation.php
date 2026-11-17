@@ -2,9 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\TimestampableTrait;
 use App\Repository\InvitationRepository;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Traits\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: InvitationRepository::class)]
 #[ORM\HasLifecycleCallbacks]

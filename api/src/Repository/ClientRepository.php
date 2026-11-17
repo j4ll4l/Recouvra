@@ -5,8 +5,9 @@ namespace App\Repository;
 use App\Entity\Client;
 use App\Entity\Company;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\Persistence\ManagerRegistry;
+
 /**
  * @extends ServiceEntityRepository<Client>
  */
@@ -16,7 +17,6 @@ class ClientRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Client::class);
     }
-
 
     /**
      * Returns the clients with the highest overdue amount still due.

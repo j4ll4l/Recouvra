@@ -47,7 +47,7 @@ final class SecondaryTenantStory extends Story
         $garage = ClientFactory::createOne(['company' => $company, 'name' => 'Garage Lyonnais']);
 
         // 4. Factures
-        // Même numéro que chez Marc Plomberie 
+        // Même numéro que chez Marc Plomberie
         $inv0001 = $this->invoice('F-2026-0001', $tilleuls, 150000, 180000, 'overdue', '-5 days');
         $inv0002 = $this->invoice('F-2026-0002', $garage, 80000, 96000, 'paid', '-10 days');
 

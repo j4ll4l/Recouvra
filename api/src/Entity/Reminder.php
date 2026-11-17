@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\TimestampableTrait;
 use App\Repository\ReminderRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Traits\TimestampableTrait;
+
 #[ORM\Entity(repositoryClass: ReminderRepository::class)]
 #[ORM\UniqueConstraint(name: 'uniq_reminder_invoice_step', columns: ['invoice_id', 'step_id'])]
 #[ORM\HasLifecycleCallbacks]

@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\TimestampableTrait;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use App\Entity\Traits\TimestampableTrait;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -116,8 +116,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
-        
+        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+
         return $data;
     }
 
