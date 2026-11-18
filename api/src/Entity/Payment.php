@@ -70,7 +70,6 @@ class Payment
     #[Assert\NotBlank, Assert\Choice(choices: self::METHODS)]
     private ?string $method = null;
 
-
     public function getId(): ?int
     {
         return $this->id;

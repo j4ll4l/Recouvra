@@ -109,7 +109,7 @@ class Invoice
     #[Groups(['invoice:read'])]
     private Collection $payments;
 
-    // Pas de groupe : les relances auront leurs propres endpoints 
+    // Pas de groupe : les relances auront leurs propres endpoints
     /** @var Collection<int, Reminder> */
     #[ORM\OneToMany(targetEntity: Reminder::class, mappedBy: 'invoice')]
     private Collection $reminders;
