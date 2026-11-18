@@ -62,7 +62,7 @@ final class CompanyExtension implements QueryCollectionExtensionInterface, Query
         $param = $queryNameGenerator->generateParameterName('company');
 
         if (Payment::class === $resourceClass) {
-            //Pour Payment on passe par sa facture
+            // Pour Payment on passe par sa facture
             $invoiceAlias = $queryNameGenerator->generateJoinAlias('invoice');
             $queryBuilder->join(sprintf('%s.invoice', $rootAlias), $invoiceAlias)
                 ->andWhere(sprintf('%s.company = :%s', $invoiceAlias, $param));

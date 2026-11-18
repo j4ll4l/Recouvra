@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\TimestampableTrait;
 use App\Repository\InvoiceRepository;
+use App\State\CompanyProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -27,12 +28,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: InvoiceRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'uniq_invoice_company_number', columns: ['company_id', 'number'])]
-#[UniqueEntity(fields: ['company', 'number'], message: 'Ce numéro de facture existe déjà.')]
+#[UniqueEntity(fields: ['company', 'number'], message: 'Ce numéro de facture existe déjà.', errorPath: 'number')]
 #[ApiResource(
     operations: [
         new Get(),
         new GetCollection(),
-        new Post(),
+        new Post(processor: CompanyProcessor::class),
         new Patch(),
         new Delete(),
     ],
