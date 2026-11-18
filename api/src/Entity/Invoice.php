@@ -2,16 +2,51 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\TimestampableTrait;
 use App\Repository\InvoiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Attribute\Context;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: InvoiceRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'uniq_invoice_company_number', columns: ['company_id', 'number'])]
+#[UniqueEntity(fields: ['company', 'number'], message: 'Ce numéro de facture existe déjà.')]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(),
+        new Patch(),
+        new Delete(),
+    ],
+    normalizationContext: ['groups' => ['invoice:read']],
+    denormalizationContext: ['groups' => ['invoice:write']],
+    order: ['dueAt' => 'ASC'],
+)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'number' => 'partial',
+    'status' => 'exact',
+    'client' => 'exact',
+])]
+#[ApiFilter(OrderFilter::class, properties: ['dueAt', 'issuedAt', 'amountTtcCents'])]
+#[ApiFilter(DateFilter::class, properties: ['dueAt'])]
 class Invoice
 {
     use TimestampableTrait;
@@ -19,46 +54,63 @@ class Invoice
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['invoice:read'])]
     private ?int $id = null;
 
+    // Pas de groupe : remplie depuis l'utilisateur connecté (après le JWT)
     #[ORM\ManyToOne(inversedBy: 'invoices')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Company $company = null;
 
     #[ORM\ManyToOne(inversedBy: 'invoices')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['invoice:read', 'invoice:write'])]
+    #[Assert\NotNull]
     private ?Client $client = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['invoice:read', 'invoice:write'])]
+    #[Assert\NotBlank, Assert\Length(max: 50)]
     private ?string $number = null;
 
     #[ORM\Column]
+    #[Groups(['invoice:read', 'invoice:write'])]
+    #[Assert\NotNull, Assert\PositiveOrZero]
     private ?int $amountHtCents = null;
 
     #[ORM\Column]
+    #[Groups(['invoice:read', 'invoice:write'])]
+    #[Assert\NotNull, Assert\GreaterThanOrEqual(propertyPath: 'amountHtCents')]
     private ?int $amountTtcCents = null;
 
+    // Lecture seule : c'est le Workflow qui le change
     #[ORM\Column(length: 20)]
+    #[Groups(['invoice:read'])]
     private string $status = 'draft';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[Groups(['invoice:read', 'invoice:write'])]
+    #[Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
+    #[Assert\NotNull]
     private ?\DateTimeImmutable $issuedAt = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
+    #[Groups(['invoice:read', 'invoice:write'])]
+    #[Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
+    #[Assert\NotNull, Assert\GreaterThanOrEqual(propertyPath: 'issuedAt')]
     private ?\DateTimeImmutable $dueAt = null;
 
+    // Pas de groupe : on n'expose jamais le chemin du fichier
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $pdfPath = null;
 
-    /**
-     * @var Collection<int, Payment>
-     */
+    /** @var Collection<int, Payment> */
     #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'invoice')]
+    #[Groups(['invoice:read'])]
     private Collection $payments;
 
-    /**
-     * @var Collection<int, Reminder>
-     */
+    // Pas de groupe : les relances auront leurs propres endpoints 
+    /** @var Collection<int, Reminder> */
     #[ORM\OneToMany(targetEntity: Reminder::class, mappedBy: 'invoice')]
     private Collection $reminders;
 
