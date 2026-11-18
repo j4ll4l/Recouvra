@@ -18,7 +18,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 final class CompanyProcessor implements ProcessorInterface
 {
     /**
-    * @param ProcessorInterface<Client|Invoice, Client|Invoice> $persistProcessor
+     * @param ProcessorInterface<Client|Invoice, Client|Invoice> $persistProcessor
      */
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
