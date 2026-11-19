@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\TimestampableTrait;
 use App\Repository\PaymentRepository;
+use App\Validator\PaymentWithinBalance;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Context;
@@ -22,6 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PaymentRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[PaymentWithinBalance]
 #[ApiResource(
     operations: [
         new Get(),
@@ -61,7 +63,10 @@ class Payment
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Groups(['payment:read', 'payment:write'])]
-    #[Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
+    #[Context(
+        normalizationContext: [DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'],
+        denormalizationContext: [DateTimeNormalizer::FORMAT_KEY => '!Y-m-d'],
+    )]
     #[Assert\NotNull, Assert\LessThanOrEqual('today', message: 'Un paiement ne peut pas être dans le futur.')]
     private ?\DateTimeImmutable $paidAt = null;
 

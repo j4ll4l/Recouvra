@@ -91,13 +91,19 @@ class Invoice
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Groups(['invoice:read', 'invoice:write'])]
-    #[Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
+    #[Context(
+        normalizationContext: [DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'],
+        denormalizationContext: [DateTimeNormalizer::FORMAT_KEY => '!Y-m-d'],
+    )]
     #[Assert\NotNull]
     private ?\DateTimeImmutable $issuedAt = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     #[Groups(['invoice:read', 'invoice:write'])]
-    #[Context([DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'])]
+    #[Context(
+        normalizationContext: [DateTimeNormalizer::FORMAT_KEY => 'Y-m-d'],
+        denormalizationContext: [DateTimeNormalizer::FORMAT_KEY => '!Y-m-d'],
+    )]
     #[Assert\NotNull, Assert\GreaterThanOrEqual(propertyPath: 'issuedAt')]
     private ?\DateTimeImmutable $dueAt = null;
 
@@ -292,5 +298,20 @@ class Invoice
         }
 
         return $this;
+    }
+
+    public function getPaidCents(): int
+    {
+        $total = 0;
+        foreach ($this->payments as $payment) {
+            $total += $payment->getAmountCents() ?? 0;
+        }
+
+        return $total;
+    }
+
+    public function getRemainingCents(): int
+    {
+        return ($this->amountTtcCents ?? 0) - $this->getPaidCents();
     }
 }
