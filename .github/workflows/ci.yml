@@ -10,7 +10,7 @@ jobs:
 
     services:
       database:
-        image: pgvector/pgvector:pg17   # même image que ton docker-compose
+        image: pgvector/pgvector:pg17   
         env:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: '!ChangeMe!'
@@ -46,4 +46,4 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
         env:
-          NUXT_SESSION_PASSWORD: ${{ secrets.NUXT_SESSION_PASSWORD }}
+          NUXT_APP_SECRET: ${{ secrets.NUXT_APP_SECRET }}
