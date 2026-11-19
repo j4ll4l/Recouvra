@@ -2,24 +2,15 @@
 
 namespace App\Tests\Api;
 
-use ApiPlatform\Test\ApiTestCase;
-use ApiPlatform\Test\Client;
 use App\Entity\Invoice;
 use App\Factory\ClientFactory;
 use App\Factory\CompanyFactory;
 use App\Factory\InvoiceFactory;
 use App\Factory\PaymentFactory;
 use App\Factory\UserFactory;
-use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
-final class PaymentBalanceTest extends ApiTestCase
+final class PaymentBalanceTest extends AbstractApiTestCase
 {
-    use Factories;
-    use ResetDatabase;
-
-    protected static ?bool $alwaysBootKernel = false;
-
     public function testPaymentAboveRemainingBalanceIsRejected(): void
     {
         $invoice = $this->createInvoiceWithBalanceOf400Euros();
@@ -76,17 +67,5 @@ final class PaymentBalanceTest extends ApiTestCase
             'paidAt' => (new \DateTimeImmutable())->format('Y-m-d'),
             'method' => 'transfer',
         ];
-    }
-
-    private function loginAs(string $email): Client
-    {
-        $client = static::createClient();
-        $response = $client->request('POST', '/api/login', [
-            'json' => ['email' => $email, 'password' => 'password'],
-        ]);
-
-        $client->setDefaultOptions(['auth_bearer' => $response->toArray()['token']]);
-
-        return $client;
     }
 }

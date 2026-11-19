@@ -138,24 +138,6 @@ final class PrimaryTenantStory extends Story
         // 9. Journal d'audit
         AuditLogFactory::createOne([
             'company' => $company,
-            'actor' => $julie,
-            'action' => 'invoice.created',
-            'entityType' => 'Invoice',
-            'entityId' => $inv0004->getId(),
-            'data' => ['number' => 'F-2026-0004'],
-        ]);
-
-        AuditLogFactory::createOne([
-            'company' => $company,
-            'actor' => $julie,
-            'action' => 'payment.created',
-            'entityType' => 'Payment',
-            'entityId' => $payment0004->getId(),
-            'data' => ['invoice' => 'F-2026-0004', 'amount_cents' => 160000],
-        ]);
-
-        AuditLogFactory::createOne([
-            'company' => $company,
             'actor' => $marc,
             'action' => 'invoice.status_changed',
             'entityType' => 'Invoice',
