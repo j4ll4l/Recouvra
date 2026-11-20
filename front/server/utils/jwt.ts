@@ -15,5 +15,10 @@ export interface JwtPayload {
     if (!payload) {
       throw createError({ statusCode: 502, statusMessage: 'Token reçu invalide' })
     }
-    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+  
+    // base64url → base64, puis décodage en UTF-8 (gère les accents)
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0))
+  
+    return JSON.parse(new TextDecoder().decode(bytes))
   }
