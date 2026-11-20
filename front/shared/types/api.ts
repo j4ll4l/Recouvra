@@ -13,10 +13,10 @@ export interface Paginated<T> {
   totalItems: number
   view?: {
     '@id': Iri
-    first?: Iri
-    last?: Iri
-    previous?: Iri
-    next?: Iri
+    'first'?: Iri
+    'last'?: Iri
+    'previous'?: Iri
+    'next'?: Iri
   }
 }
 
@@ -24,7 +24,7 @@ export interface Paginated<T> {
 export interface ApiViolationList {
   title: string
   detail: string
-  violations: { propertyPath: string; message: string }[]
+  violations: { propertyPath: string, message: string }[]
 }
 
 /** Date au format renvoyé par l'API : "2026-11-19" */
