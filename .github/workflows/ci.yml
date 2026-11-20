@@ -23,7 +23,9 @@ jobs:
           --health-retries 10
 
     env:
+      env:
       DATABASE_URL: "postgresql://app:!ChangeMe!@127.0.0.1:5432/app?serverVersion=17&charset=utf8"
+      JWT_PASSPHRASE: "ci-only-not-a-secret"
 
     steps:
       - uses: actions/checkout@v4
