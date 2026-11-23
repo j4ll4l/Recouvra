@@ -1,9 +1,13 @@
-export default defineEventHandler(async (event) => {
-  const body = await readBody<{ email?: unknown, password?: unknown }>(event)
+import { z } from 'zod'
 
-  if (typeof body?.email !== 'string' || typeof body?.password !== 'string') {
-    throw createError({ statusCode: 400, statusMessage: 'Email et mot de passe requis' })
-  }
+const loginSchema = z.object({
+  email: z.email(),
+  password: z.string().min(1),
+})
+
+export default defineEventHandler(async (event) => {
+  // Body invalide → 400 automatique, avec le détail des erreurs
+  const { email, password } = await readValidatedBody(event, loginSchema.parse)
 
   const { apiBaseUrl } = useRuntimeConfig(event)
 
@@ -11,7 +15,7 @@ export default defineEventHandler(async (event) => {
   try {
     const response = await $fetch<{ token: string }>(`${apiBaseUrl}/login`, {
       method: 'POST',
-      body: { email: body.email, password: body.password },
+      body: { email, password },
     })
     token = response.token
   }
