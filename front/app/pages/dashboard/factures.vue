@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { formatCents, formatDate } from '#shared/utils/format'
 import { INVOICE_STATUS_LABELS, isInvoiceStatus } from '#shared/utils/invoice-status'
+import { countPages } from '#shared/utils/pagination'
 
 definePageMeta({ layout: 'dashboard' })
 useSeoMeta({ title: 'Factures | Recouvra', robots: 'noindex' })
-
-const ITEMS_PER_PAGE = 20 // pagination_items_per_page côté API Platform
 
 const route = useRoute()
 const invoices = useInvoices()
@@ -20,9 +19,7 @@ const { data, status: loadState, error, refresh } = await useAsyncData(
   { watch: [page, status] },
 )
 
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil((data.value?.totalItems ?? 0) / ITEMS_PER_PAGE)),
-)
+const totalPages = computed(() => countPages(data.value?.totalItems ?? 0))
 
 // Changer de statut met à jour l'URL et revient à la page 1
 const statusModel = computed({
@@ -109,21 +106,10 @@ const statusModel = computed({
         </tbody>
       </table>
 
-      <nav aria-label="Pagination">
-        <NuxtLink
-          v-if="page > 1"
-          :to="{ query: { ...route.query, page: page - 1 } }"
-        >
-          Précédent
-        </NuxtLink>
-        <span>Page {{ page }} / {{ totalPages }}</span>
-        <NuxtLink
-          v-if="page < totalPages"
-          :to="{ query: { ...route.query, page: page + 1 } }"
-        >
-          Suivant
-        </NuxtLink>
-      </nav>
+      <AppPagination
+        :page="page"
+        :total-pages="totalPages"
+      />
     </template>
   </section>
 </template>
