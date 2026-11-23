@@ -42,7 +42,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     order: ['dueAt' => 'ASC'],
 )]
 #[ApiFilter(SearchFilter::class, properties: [
-    'number' => 'partial',
+    'number' => 'ipartial',
     'status' => 'exact',
     'client' => 'exact',
 ])]
