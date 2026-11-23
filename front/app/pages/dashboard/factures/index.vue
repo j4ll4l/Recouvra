@@ -34,6 +34,8 @@ const statusModel = computed({
   <section>
     <h1>Factures</h1>
 
+    <NuxtLink to="/dashboard/factures/nouvelle">Nouvelle facture</NuxtLink>
+
     <label for="status">Statut</label>
     <select
       id="status"
