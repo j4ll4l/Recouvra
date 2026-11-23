@@ -35,8 +35,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     order: ['name' => 'ASC'],
 )]
 #[ApiFilter(SearchFilter::class, properties: [
-    'name' => 'partial',
-    'email' => 'partial',
+    'name' => 'ipartial',
+    'email' => 'ipartial',
     'siret' => 'exact',
 ])]
 #[ApiFilter(OrderFilter::class, properties: ['name'])]
