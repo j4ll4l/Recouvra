@@ -17,11 +17,18 @@ use App\State\CompanyProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\UniqueConstraint(name: 'uniq_client_company_siret', columns: ['company_id', 'siret'])]
+#[UniqueEntity(
+    fields: ['company', 'siret'],
+    message: 'Un client avec ce SIRET existe déjà.',
+    errorPath: 'siret',
+)]
 #[ApiResource(
     operations: [
         new Get(),
