@@ -54,6 +54,8 @@ onBeforeUnmount(() => clearTimeout(timer))
   <section>
     <h1>Clients</h1>
 
+    <NuxtLink to="/dashboard/clients/nouveau">Nouveau client</NuxtLink>
+
     <label for="search">Rechercher un client</label>
     <input
       id="search"
