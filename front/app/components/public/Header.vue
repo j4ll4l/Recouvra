@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const links = [
-  { to: '/', label: 'Fonctionnalités' },
+  { to: '/#fonctionnalites', label: 'Fonctionnalités' },
   { to: '/metiers/plombier', label: 'Métiers' },
   { to: '/outils/calcul-penalites-retard', label: 'Calcul des pénalités' },
   { to: '/guides/mise-en-demeure-facture-impayee', label: 'Guides' },
@@ -10,6 +10,7 @@ const links = [
 const menuOpen = ref(false)
 const route = useRoute()
 
+// Le menu mobile se ferme quand on change de page
 watch(() => route.fullPath, () => {
   menuOpen.value = false
 })

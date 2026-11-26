@@ -19,6 +19,12 @@
   --color-muted: #4a5161; /* texte secondaire, contraste AA sur blanc */
   --color-text-on-dark: #d9dbdf;
   --color-muted-on-dark: #b4b9c1;
+  --color-ink-band: #181a1e; /* bandeau sombre */
+  --color-ink-soft: #1f2227; /* cartes sur fond sombre */
+  --color-ink-line: #2c3038; /* bordures sur fond sombre */
+  --color-success-on-dark: #7be3a4;
+  --color-success-bg-dark: #1e3a2a;
+  --color-warning-bg-dark: #3d3413;
 
   /* Couleurs de retour */
   --color-success: #17623a;
@@ -189,6 +195,62 @@ a {
   .container {
     padding-inline: var(--space-10);
   }
+}
+
+/* ---------- Sections des pages publiques ---------- */
+.section {
+  padding-block: clamp(3.5rem, 2rem + 6vw, 7.5rem);
+}
+
+.section--paper {
+  background: var(--color-paper);
+}
+
+.section--yellow {
+  --focus-color: var(--color-ink);
+
+  background: var(--color-yellow);
+  color: var(--color-ink);
+}
+
+/* Petit titre au-dessus d'un h2 : trait jaune + texte en capitales */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 3px;
+  background: var(--color-yellow);
+}
+
+.theme-dark .eyebrow {
+  color: var(--color-yellow);
+}
+
+.section--yellow .eyebrow::before {
+  background: var(--color-ink);
+}
+
+.h2 {
+  font-size: var(--text-2xl);
+}
+
+.lead {
+  font-size: var(--text-lg);
+  color: var(--color-muted);
+}
+
+.theme-dark .lead {
+  color: var(--color-muted-on-dark);
 }
 
 /* Moins d'animations pour les personnes qui l'ont demandé dans leur système */

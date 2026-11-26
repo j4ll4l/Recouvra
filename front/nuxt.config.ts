@@ -4,6 +4,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: { lang: 'fr' },
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
@@ -16,6 +17,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiBaseUrl: 'http://localhost:8000/api', // port de compose.yaml
     session: { maxAge: 60 * 60 * 8 },
+    public: {
+      siteUrl: 'https://recouvra.fr', // surchargeable avec NUXT_PUBLIC_SITE_URL
+    },
   },
 
   routeRules: {
