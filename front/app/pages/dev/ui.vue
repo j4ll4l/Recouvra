@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Vitrine des composants UI
+// Vitrine des composants UI, disponible seulement en développement (npm run dev)
 if (!import.meta.dev) {
   throw createError({ statusCode: 404, statusMessage: 'Page introuvable' })
 }
@@ -118,6 +118,9 @@ const tabs = [
       :page="2"
       :total-pages="5"
     />
+
+    <h2>Calcul des pénalités</h2>
+    <PenaltyCalculator />
   </div>
 </template>
 
