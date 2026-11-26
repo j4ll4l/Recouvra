@@ -1,10 +1,16 @@
 import type { Invoice, InvoiceInput, InvoiceStatus, Iri, Paginated } from '#shared/types'
 
+type SortDirection = 'asc' | 'desc'
+
 export interface InvoiceFilters {
-  page?: number
-  status?: InvoiceStatus
-  client?: Iri
-  number?: string
+  'page'?: number
+  /** 100 au maximum (pagination_maximum_items_per_page) */
+  'itemsPerPage'?: number
+  'status'?: InvoiceStatus
+  'client'?: Iri
+  'number'?: string
+  'order[dueAt]'?: SortDirection
+  'order[amountTtcCents]'?: SortDirection
 }
 
 export function useInvoices() {
