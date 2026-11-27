@@ -1,11 +1,12 @@
 import type { Client, ClientInput, Paginated } from '#shared/types'
 
 export interface ClientFilters {
-  page?: number
+  'page'?: number
   /** 100 au maximum (pagination_maximum_items_per_page) */
-  itemsPerPage?: number
-  name?: string
-  email?: string
+  'itemsPerPage'?: number
+  'name'?: string
+  'email'?: string
+  'order[name]'?: 'asc' | 'desc'
 }
 
 export function useClients() {
