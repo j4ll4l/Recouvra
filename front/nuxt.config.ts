@@ -24,6 +24,8 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { prerender: true },
+    '/outils/calcul-penalites-retard': { prerender: true },
+    '/tarifs': { prerender: true },
     '/dashboard/**': { ssr: false },
   },
   compatibilityDate: '2025-07-15',
