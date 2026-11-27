@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { InvoiceInput } from '#shared/types'
-import { addDays, todayIso } from '#shared/utils/date'
-import { parseEurosToCents } from '#shared/utils/format'
+import type { PaymentTerm } from '#shared/utils/date'
+import type { VatRate } from '#shared/utils/vat'
+import { addDays, dueDateFor, PAYMENT_TERM_LABELS, todayIso } from '#shared/utils/date'
+import { formatCents, parseEurosToCents } from '#shared/utils/format'
+import { ttcFromHt, VAT_RATES } from '#shared/utils/vat'
 import { violationsByField } from '#shared/utils/violations'
 
 definePageMeta({ layout: 'dashboard' })
@@ -10,39 +13,47 @@ useSeoMeta({ title: 'Nouvelle facture | Recouvra', robots: 'noindex' })
 const invoices = useInvoices()
 const clients = useClients()
 
-// Liste des clients
-const { data: clientOptions } = await useAsyncData('client-options', () => clients.list({ page: 1 }))
+const { data: clientOptions } = await useAsyncData('client-options', () => clients.list({ itemsPerPage: 100 }))
 
 const today = todayIso()
 const form = reactive({
   client: '',
   number: '',
   amountHt: '',
+  vatRate: 20 as VatRate,
   amountTtc: '',
   issuedAt: today,
+  term: '30' as PaymentTerm | 'custom',
   dueAt: addDays(today, 30),
 })
 const errors = ref<Record<string, string>>({})
 const globalError = ref<string | null>(null)
 const pending = ref(false)
 
-// Tant que l'utilisateur n'a pas touché à l'échéance, elle suit la date d'émission (+30 jours)
-const dueAtTouched = ref(false)
-watch(() => form.issuedAt, (issuedAt) => {
-  if (!dueAtTouched.value && issuedAt) {
-    form.dueAt = addDays(issuedAt, 30)
-  }
+// ---------- TTC calculé depuis le HT et la TVA, tant qu'on ne le modifie pas à la main ----------
+const ttcTouched = ref(false)
+watch(() => [form.amountHt, form.vatRate] as const, ([ht, rate]) => {
+  if (ttcTouched.value) return
+  const htCents = parseEurosToCents(ht)
+  form.amountTtc = htCents === null ? '' : (ttcFromHt(htCents, rate) / 100).toFixed(2).replace('.', ',')
 })
+
+// ---------- Échéance proposée selon le délai choisi ----------
+watch(() => [form.issuedAt, form.term] as const, ([issuedAt, term]) => {
+  if (issuedAt && term !== 'custom') form.dueAt = dueDateFor(issuedAt, term)
+})
+
+// Au-delà de 60 jours après l'émission, on prévient (plafond légal, art. L441-10)
+const beyondLegalLimit = computed(() => Boolean(form.issuedAt && form.dueAt && form.dueAt > addDays(form.issuedAt, 60)))
 
 async function onSubmit() {
   errors.value = {}
   globalError.value = null
 
-  // Vérification côté front le format du montant, l'API ne peut pas le recevoir tel quel
   const amountHtCents = parseEurosToCents(form.amountHt)
   const amountTtcCents = parseEurosToCents(form.amountTtc)
-  if (amountHtCents === null) errors.value.amountHtCents = 'Montant invalide (ex. 1 234,56).'
-  if (amountTtcCents === null) errors.value.amountTtcCents = 'Montant invalide (ex. 1 234,56).'
+  if (amountHtCents === null) errors.value.amountHtCents = 'Montant invalide, par exemple 1 234,56.'
+  if (amountTtcCents === null) errors.value.amountTtcCents = 'Montant invalide, par exemple 1 480,00.'
   if (amountHtCents === null || amountTtcCents === null) return
 
   const input: InvoiceInput = {
@@ -56,17 +67,13 @@ async function onSubmit() {
 
   pending.value = true
   try {
-    await invoices.create(input)
-    await navigateTo('/dashboard/factures')
+    const created = await invoices.create(input)
+    await navigateTo(`/dashboard/factures/${created.id}`)
   }
   catch (error) {
     const fieldErrors = violationsByField(error)
-    if (fieldErrors) {
-      errors.value = fieldErrors
-    }
-    else {
-      globalError.value = 'Enregistrement impossible. Réessayez dans un instant.'
-    }
+    if (fieldErrors) errors.value = fieldErrors
+    else globalError.value = 'Enregistrement impossible. Réessayez dans un instant.'
   }
   finally {
     pending.value = false
@@ -75,149 +82,300 @@ async function onSubmit() {
 </script>
 
 <template>
-  <section>
-    <h1>Nouvelle facture</h1>
+  <div class="new">
+    <NuxtLink
+      to="/dashboard/factures"
+      class="new__back"
+    >← Factures</NuxtLink>
+    <h1 class="new__title">
+      Nouvelle facture
+    </h1>
 
     <form
+      class="new__form"
       novalidate
       @submit.prevent="onSubmit"
     >
-      <div>
-        <label for="client">Client</label>
-        <select
-          id="client"
-          v-model="form.client"
-          :aria-invalid="!!errors.client"
-          aria-describedby="client-error"
+      <UiCard aria-labelledby="client-titre">
+        <h2
+          id="client-titre"
+          class="block__title"
         >
-          <option
-            value=""
-            disabled
+          Client et numéro
+        </h2>
+        <div class="grid">
+          <UiField
+            v-slot="{ id, describedby, invalid }"
+            label="Client"
+            :error="errors.client"
           >
-            Choisir un client
-          </option>
-          <option
-            v-for="client in clientOptions?.member"
-            :key="client.id"
-            :value="client['@id']"
+            <select
+              :id="id"
+              v-model="form.client"
+              :aria-describedby="describedby"
+              :aria-invalid="invalid"
+            >
+              <option
+                value=""
+                disabled
+              >
+                Choisir un client
+              </option>
+              <option
+                v-for="client in clientOptions?.member"
+                :key="client.id"
+                :value="client['@id']"
+              >
+                {{ client.name }}
+              </option>
+            </select>
+          </UiField>
+          <UiField
+            v-slot="{ id, describedby, invalid }"
+            label="Numéro de facture"
+            :error="errors.number"
           >
-            {{ client.name }}
-          </option>
-        </select>
-        <p
-          v-if="errors.client"
-          id="client-error"
-        >
-          {{ errors.client }}
-        </p>
-        <NuxtLink to="/dashboard/clients/nouveau">Nouveau client</NuxtLink>
-      </div>
+            <input
+              :id="id"
+              v-model="form.number"
+              type="text"
+              placeholder="F-2026-0008"
+              autocomplete="off"
+              :aria-describedby="describedby"
+              :aria-invalid="invalid"
+            >
+          </UiField>
+        </div>
+        <NuxtLink
+          to="/dashboard/clients/nouveau"
+          class="new__link"
+        >+ Nouveau client</NuxtLink>
+      </UiCard>
 
-      <div>
-        <label for="number">Numéro de facture</label>
-        <input
-          id="number"
-          v-model="form.number"
-          type="text"
-          placeholder="F-2026-0008"
-          :aria-invalid="!!errors.number"
-          aria-describedby="number-error"
+      <UiCard aria-labelledby="montants-titre">
+        <h2
+          id="montants-titre"
+          class="block__title"
         >
-        <p
-          v-if="errors.number"
-          id="number-error"
-        >
-          {{ errors.number }}
-        </p>
-      </div>
+          Montants
+        </h2>
+        <div class="grid grid--3">
+          <UiField
+            v-slot="{ id, describedby, invalid }"
+            label="Montant HT (€)"
+            :error="errors.amountHtCents"
+          >
+            <input
+              :id="id"
+              v-model="form.amountHt"
+              type="text"
+              inputmode="decimal"
+              placeholder="1 000,00"
+              :aria-describedby="describedby"
+              :aria-invalid="invalid"
+            >
+          </UiField>
+          <UiField
+            v-slot="{ id }"
+            label="TVA"
+          >
+            <select
+              :id="id"
+              v-model.number="form.vatRate"
+            >
+              <option
+                v-for="rate in VAT_RATES"
+                :key="rate"
+                :value="rate"
+              >
+                {{ rate === 0 ? 'Autoliquidation (0 %)' : `${rate.toLocaleString('fr-FR')} %` }}
+              </option>
+            </select>
+          </UiField>
+          <UiField
+            v-slot="{ id, describedby, invalid }"
+            label="Montant TTC (€)"
+            hint="Calculé, modifiable"
+            :error="errors.amountTtcCents"
+          >
+            <input
+              :id="id"
+              v-model="form.amountTtc"
+              type="text"
+              inputmode="decimal"
+              :aria-describedby="describedby"
+              :aria-invalid="invalid"
+              @input="ttcTouched = true"
+            >
+          </UiField>
+        </div>
+      </UiCard>
 
-      <div>
-        <label for="amountHt">Montant HT (€)</label>
-        <input
-          id="amountHt"
-          v-model="form.amountHt"
-          type="text"
-          inputmode="decimal"
-          placeholder="1 000,00"
-          :aria-invalid="!!errors.amountHtCents"
-          aria-describedby="amountHt-error"
+      <UiCard aria-labelledby="dates-titre">
+        <h2
+          id="dates-titre"
+          class="block__title"
         >
-        <p
-          v-if="errors.amountHtCents"
-          id="amountHt-error"
+          Dates
+        </h2>
+        <div class="grid grid--3">
+          <UiField
+            v-slot="{ id, describedby, invalid }"
+            label="Date d’émission"
+            :error="errors.issuedAt"
+          >
+            <input
+              :id="id"
+              v-model="form.issuedAt"
+              type="date"
+              :aria-describedby="describedby"
+              :aria-invalid="invalid"
+            >
+          </UiField>
+          <UiField
+            v-slot="{ id }"
+            label="Délai de paiement"
+          >
+            <select
+              :id="id"
+              v-model="form.term"
+            >
+              <option
+                v-for="(label, value) in PAYMENT_TERM_LABELS"
+                :key="value"
+                :value="value"
+              >
+                {{ label }}
+              </option>
+              <option value="custom">
+                Date précise
+              </option>
+            </select>
+          </UiField>
+          <UiField
+            v-slot="{ id, describedby, invalid }"
+            label="Date d’échéance"
+            :error="errors.dueAt"
+          >
+            <input
+              :id="id"
+              v-model="form.dueAt"
+              type="date"
+              :aria-describedby="describedby"
+              :aria-invalid="invalid"
+              @input="form.term = 'custom'"
+            >
+          </UiField>
+        </div>
+        <UiAlert
+          v-if="beyondLegalLimit"
+          tone="warning"
+          class="new__warning"
         >
-          {{ errors.amountHtCents }}
-        </p>
-      </div>
+          Échéance à plus de 60 jours après l’émission : c’est au-delà du délai maximal entre professionnels (art. L441-10).
+        </UiAlert>
+      </UiCard>
 
-      <div>
-        <label for="amountTtc">Montant TTC (€)</label>
-        <input
-          id="amountTtc"
-          v-model="form.amountTtc"
-          type="text"
-          inputmode="decimal"
-          placeholder="1 200,00"
-          :aria-invalid="!!errors.amountTtcCents"
-          aria-describedby="amountTtc-error"
-        >
-        <p
-          v-if="errors.amountTtcCents"
-          id="amountTtc-error"
-        >
-          {{ errors.amountTtcCents }}
-        </p>
-      </div>
-
-      <div>
-        <label for="issuedAt">Date d'émission</label>
-        <input
-          id="issuedAt"
-          v-model="form.issuedAt"
-          type="date"
-          :aria-invalid="!!errors.issuedAt"
-          aria-describedby="issuedAt-error"
-        >
-        <p
-          v-if="errors.issuedAt"
-          id="issuedAt-error"
-        >
-          {{ errors.issuedAt }}
-        </p>
-      </div>
-
-      <div>
-        <label for="dueAt">Date d'échéance</label>
-        <input
-          id="dueAt"
-          v-model="form.dueAt"
-          type="date"
-          :aria-invalid="!!errors.dueAt"
-          aria-describedby="dueAt-error"
-          @input="dueAtTouched = true"
-        >
-        <p
-          v-if="errors.dueAt"
-          id="dueAt-error"
-        >
-          {{ errors.dueAt }}
-        </p>
-      </div>
-
-      <p
+      <UiAlert
         v-if="globalError"
-        role="alert"
+        tone="error"
       >
         {{ globalError }}
-      </p>
+      </UiAlert>
 
-      <button
-        type="submit"
-        :disabled="pending"
+      <div class="new__actions">
+        <UiButton
+          to="/dashboard/factures"
+          variant="outline"
+        >
+          Annuler
+        </UiButton>
+        <UiButton
+          type="submit"
+          :loading="pending"
+        >
+          {{ pending ? 'Enregistrement…' : 'Créer la facture' }}
+        </UiButton>
+      </div>
+      <p
+        v-if="form.amountTtc && parseEurosToCents(form.amountTtc) !== null"
+        class="new__summary"
       >
-        {{ pending ? 'Enregistrement…' : 'Créer la facture' }}
-      </button>
-      <NuxtLink to="/dashboard/factures">Annuler</NuxtLink>
+        Recouvra relancera le client si les {{ formatCents(parseEurosToCents(form.amountTtc) ?? 0) }} ne sont pas payés à l’échéance.
+      </p>
     </form>
-  </section>
+  </div>
 </template>
+
+<style scoped>
+.new {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 900px;
+}
+
+.new__back {
+  align-self: flex-start;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.new__title {
+  font-size: var(--text-2xl);
+}
+
+.new__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.block__title {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-lg);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.new__link {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.new__warning {
+  margin-top: var(--space-4);
+}
+
+.new__actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-3);
+}
+
+.new__summary {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .new__actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+</style>
