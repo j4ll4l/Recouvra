@@ -1,4 +1,4 @@
-import type { Client, ClientInput, Paginated } from '#shared/types'
+import type { Client, ClientInput, ClientPatch, Paginated } from '#shared/types'
 
 export interface ClientFilters {
   'page'?: number
@@ -22,7 +22,7 @@ export function useClients() {
     create: (input: ClientInput) =>
       api<Client>('/clients', { method: 'POST', body: input }),
 
-    update: (id: number, input: Partial<ClientInput>) =>
+    update: (id: number, input: ClientPatch) =>
       api<Client>(`/clients/${id}`, {
         method: 'PATCH',
         body: input,
