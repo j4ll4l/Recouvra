@@ -15,9 +15,11 @@ const clients = useClients()
 
 const { data: clientOptions } = await useAsyncData('client-options', () => clients.list({ itemsPerPage: 100 }))
 
+const route = useRoute()
 const today = todayIso()
 const form = reactive({
-  client: '',
+  // Depuis une fiche client : /dashboard/factures/nouvelle?client=/api/clients/12
+  client: typeof route.query.client === 'string' ? route.query.client : '',
   number: '',
   amountHt: '',
   vatRate: 20 as VatRate,
